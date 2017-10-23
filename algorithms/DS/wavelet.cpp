@@ -39,7 +39,7 @@ struct wavelet_tree {
         r = new wavelet_tree(pivot, to, mid + 1, hi);
     }
 
-    //kth smallest element in [l, r]
+    //kth smallest element in [l, r] 1-indexed
     int kth(int l, int r, int k) {
         if (l > r) return 0;
         if (lo == hi) return lo;
