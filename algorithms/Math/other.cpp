@@ -1,6 +1,8 @@
 //Importante el unsigned sino TLE (ull = unsigned long long)
 // (a*b)%c
 ull mulmod(ull a, ull b, ull c) {
+    a %= c;
+    b %= c;
     unsigned long long x = 0, y = a, t;
     while (b) {
         if (b & 1) {
