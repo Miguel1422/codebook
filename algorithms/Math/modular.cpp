@@ -35,6 +35,20 @@ int extended_euclid(int a, int b, int &x, int &y) {
   return a;
 }
 
+const int64_t MOD = 1e9+7;
+void exgcd(int64_t x, int64_t y, int64_t &g, int64_t &a, int64_t &b) {
+    if (y == 0)
+        g = x, a = 1, b = 0;
+    else
+        exgcd(y, x%y, g, b, a), b -= (x/y) * a;
+}
+int64_t inverse(int64_t x, int64_t p) {
+    int64_t g, b, r;
+    exgcd(x, p, g, r, b);
+    if (g < 0)	r = -r;
+    return (r%p + p)%p;
+}
+
 // finds all solutions to ax = b (mod n)
 VI modular_linear_equation_solver(int a, int b, int n) {
   int x, y;
