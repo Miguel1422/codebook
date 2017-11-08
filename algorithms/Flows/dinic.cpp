@@ -1,78 +1,93 @@
-// Dinic's blocking flow algorithm
-// Running time:
-// * general networks: O(|V|^2 |E|)
-// * unit capacity networks: O(E min(V^(2/3), E^(1/2)))
-// * bipartite matching networks: O(E sqrt(V))
+struct flow_graph {
+    int MAX_V, E, s, t, head, tail;
+    int *cap, *to, *next, *last, *dist, *q, *now;
+    flow_graph() {}
+    flow_graph(int V, int MAX_E) {
+        MAX_V = V;
+        E = 0;
+        cap = new int[2 * MAX_E], to = new int[2 * MAX_E], next = new int[2 * MAX_E];
+        last = new int[MAX_V], q = new int[MAX_V], dist = new int[MAX_V], now = new int[MAX_V];
+        fill(last, last + MAX_V, -1);
+    }
+    void clear() {
+        fill(last, last + MAX_V, -1);
+        E = 0;
+    }
+    void add_edge(int u, int v, int uv, int vu = 0) {
+        to[E] = v, cap[E] = uv, next[E] = last[u];
+        last[u] = E++;
+        to[E] = u, cap[E] = vu, next[E] = last[v];
+        last[v] = E++;
+    }
+    bool bfs() {
+        fill(dist, dist + MAX_V, -1);
+        head = tail = 0;
+        q[tail] = t;
+        ++tail;
+        dist[t] = 0;
 
-const int INF = 2000000000;
-
-struct Edge {
-  int from, to, cap, flow, index;
-  Edge(int from, int to, int cap, int flow, int index) :
-    from(from), to(to), cap(cap), flow(flow), index(index) {}
-};
-
-struct Dinic {
-  int N;
-  vector<vector<Edge> > G;
-  vector<Edge *> dad;
-  vector<int> Q;
-  
-  // N = number of vertices
-  Dinic(int N) : N(N), G(N), dad(N), Q(N) {}
-  
-  // Add an edge to initially empty network. from, to are 0-based
-  void AddEdge(int from, int to, int cap) {
-    G[from].push_back(Edge(from, to, cap, 0, G[to].size()));
-    if (from == to) G[from].back().index++;
-    G[to].push_back(Edge(to, from, 0, 0, G[from].size() - 1));
-  }
-
-  long long BlockingFlow(int s, int t) {
-    fill(dad.begin(), dad.end(), (Edge *) NULL);
-    dad[s] = &G[0][0] - 1;
-    
-    int head = 0, tail = 0;
-    Q[tail++] = s;
-    while (head < tail) {
-      int x = Q[head++];
-      for (int i = 0; i < G[x].size(); i++) {
-        Edge &e = G[x][i];
-        if (!dad[e.to] && e.cap - e.flow > 0) {
-          dad[e.to] = &G[x][i];
-          Q[tail++] = e.to;
+        while (head < tail) {
+            int v = q[head];
+            ++head;
+            for (int e = last[v]; e != -1; e = next[e]) {
+                if (cap[e ^ 1] > 0 && dist[to[e]] == -1) {
+                    q[tail] = to[e];
+                    ++tail;
+                    dist[to[e]] = dist[v] + 1;
+                }
+            }
         }
-      }
+
+        return dist[s] != -1;
     }
-    if (!dad[t]) return 0;
 
-    long long totflow = 0;
-    for (int i = 0; i < G[t].size(); i++) {
-      Edge *start = &G[G[t][i].to][G[t][i].index];
-      int amt = INF;
-      for (Edge *e = start; amt && e != dad[s]; e = dad[e->from]) {
-        if (!e) { amt = 0; break; }
-        amt = min(amt, e->cap - e->flow);
-      }
-      if (amt == 0) continue;
-      for (Edge *e = start; amt && e != dad[s]; e = dad[e->from]) {
-        e->flow += amt;
-        G[e->to][e->index].flow -= amt;
-      }
-      totflow += amt;
+    int dfs(int v, int f) {
+        if (v == t) return f;
+
+        for (int &e = now[v]; e != -1; e = next[e]) {
+            if (cap[e] > 0 && dist[to[e]] == dist[v] - 1) {
+                int ret = dfs(to[e], min(f, cap[e]));
+
+                if (ret > 0) {
+                    cap[e] -= ret;
+                    cap[e ^ 1] += ret;
+                    return ret;
+                }
+            }
+        }
+
+        return 0;
     }
-    return totflow;
-  }
 
-  // Call this to get the max flow. s, t are 0-based.
-  // Note, you can only call this once.
-  // To obtain the actual flow values, look at all edges with
-  // capacity > 0 (zero capacity edges are residual edges).
+    long long max_flow(int source, int sink) {
+        s = source;
+        t = sink;
+        long long f = 0;
+        int x;
 
-  long long GetMaxFlow(int s, int t) {
-    long long totflow = 0;
-    while (long long flow = BlockingFlow(s, t))
-      totflow += flow;
-    return totflow;
-  }
-};
+        while (bfs()) {
+            for (int i = 0; i < MAX_V; ++i) now[i] = last[i];
+
+            while (true) {
+                x = dfs(s, INT_MAX);
+                if (x == 0) break;
+                f += x;
+            }
+        }
+        return f;
+    }
+    bool inCut(int v) { // Return if v is in the side of the mincut (NOT tested)
+        return dist[v] != -1;
+    }
+} G;
+int main() {
+    int V, E, u, v, c;
+    scanf("%d %d", &V, &E);
+    G = flow_graph(V, E);
+    for (int i = 0; i < E; ++i) {
+        scanf("%d %d %d", &u, &v, &c);
+        G.add_edge(u - 1, v - 1, c, c);
+    }
+    printf("%lld\n", G.max_flow(0, V - 1));
+    return 0;
+}
