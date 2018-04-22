@@ -7,7 +7,7 @@ int sparse[MAXN][level]; // store something else, example heaviest edge from n t
 // first parent(2^0th parent)
 void dfs(int cur, int prev) {
     depth[cur] = depth[prev] + 1;
-	sparse[cur][0] = cost[cur -> prev(parent)];
+	sparse[cur][0] = cost[cur -> parent(same as prev)];
     parent[cur][0] = prev;
     for (int i = 0; i < tree[cur].size(); i++) {
         if (tree[cur][i] != prev) dfs(tree[cur][i], cur);
