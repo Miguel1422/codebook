@@ -58,10 +58,9 @@ void addEdge(int u, int v) {
     tree[u].push_back(v); tree[v].push_back(u);
 }
 
-// driver function
 int main() {
     memset(parent, -1, sizeof(parent));
-    int n = 8;
+    int n = Vertices;
     // addEdges
     depth[0] = 0; dfs(1, 0);
     precomputeSparseMatrix(n);
