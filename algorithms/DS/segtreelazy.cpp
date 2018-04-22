@@ -38,7 +38,7 @@ void push(int node, bool leaf) {
     if(lazy[node] != 0) {
         tree[node].mmin += lazy[node];
         tree[node].mmax += lazy[node];
-        if(!leaf && RIGHT(node) < N * 4) {
+        if(!leaf) {
             lazy[LEFT(node)]  += lazy[node];
             lazy[RIGHT(node)] += lazy[node];
         }
@@ -63,7 +63,7 @@ void updateRange(int l, int r, int val, int index = 0, int f = 0, int t = n - 1)
     if (l > t || r < f) return;
     if (f >= l && t <= r) {
         lazy[index] = val;
-        push(index, l == r);
+        push(index, f == t);
         return;
     }
     int mid = (f + t) / 2;
