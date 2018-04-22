@@ -38,7 +38,7 @@ void push(int node, bool leaf) {
     if(lazy[node] != 0) {
         tree[node].mmin += lazy[node];
         tree[node].mmax += lazy[node];
-        if(!leaf) {
+        if(!leaf && RIGHT(node) < N * 4) {
             lazy[LEFT(node)]  += lazy[node];
             lazy[RIGHT(node)] += lazy[node];
         }
