@@ -7,10 +7,11 @@ int sparse[MAXN][level]; // store something else, example heaviest edge from n t
 // first parent(2^0th parent)
 void dfs(int cur, int prev) {
     depth[cur] = depth[prev] + 1;
-	sparse[cur][0] = cost[cur -> parent(same as prev)];
+    sparse[cur][0] = cost[cur][prev]; // Cost from u to parent
     parent[cur][0] = prev;
     for (int i = 0; i < tree[cur].size(); i++) {
-        if (tree[cur][i] != prev) dfs(tree[cur][i], cur);
+        if (tree[cur][i] != prev)
+            dfs(tree[cur][i], cur);
     }
 }
 
@@ -20,11 +21,11 @@ void precomputeSparseMatrix(int n) {
     for (int i = 1; i < level; i++) {
         for (int node = 1; node <= n; node++) {
             if (parent[node][i - 1] != -1) {
-				parent[node][i] = parent[parent[node][i - 1]][i - 1];
-				int a = sparse[node][i - 1];
+                parent[node][i] = parent[parent[node][i - 1]][i - 1];
+                int a = sparse[node][i - 1];
                 int b = sparse[parent[node][i - 1]][i - 1];
                 sparse[node][i] = max(a, b); // heaviest to 2^i parent
-			}
+            }
         }
     }
 }
@@ -33,36 +34,39 @@ void precomputeSparseMatrix(int n) {
 int lca(int u, int v) {
     if (depth[v] < depth[u])
         swap(u, v);
-	int heaviest = 0;
+    int heaviest = 0;
     int diff = depth[v] - depth[u];
     for (int i = 0; i < level; i++)
         if ((diff >> i) & 1) {
             v = parent[v][i];
-			heaviest = max(heaviest, sparse[v][i]);
-		}
+            heaviest = max(heaviest, sparse[v][i]);
+        }
 
     // now depth[u] == depth[v]
-    if (u == v) return u; // heaviest;
+    if (u == v)
+        return u; // return heaviest;
     for (int i = level - 1; i >= 0; i--)
         if (parent[u][i] != parent[v][i]) {
             u = parent[u][i];
             v = parent[v][i];
-			heaviest = max(heaviest, sparse[u][i]);
+            heaviest = max(heaviest, sparse[u][i]);
             heaviest = max(heaviest, sparse[v][i]);
         }
-	// heaviest = max(heaviest, sparse[u][0], sparse[u][0]) if u or v != -1
+    // heaviest = max(heaviest, sparse[u][0], sparse[v][0]) if u or v != -1
     return parent[u][0];
 }
 
 void addEdge(int u, int v) {
-    tree[u].push_back(v); tree[v].push_back(u);
+    tree[u].push_back(v);
+    tree[v].push_back(u);
 }
 
 int main() {
     memset(parent, -1, sizeof(parent));
     int n = Vertices;
     // addEdges
-    depth[0] = 0; dfs(1, 0);
+    depth[0] = 0;
+    dfs(1, 0);
     precomputeSparseMatrix(n);
     cout << "LCA(4, 7) = " << lca(4, 7) << endl;
 }
